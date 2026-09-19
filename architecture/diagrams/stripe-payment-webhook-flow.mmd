@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant U as User (Browser)
+    participant Fn as Netlify Function
+    participant S as Stripe
+    participant DB as Supabase Postgres
+
+    U->>Fn: POST /api/checkout (authenticated session)
+    Fn->>Fn: Rate limit; validate plan against server-side price map
+    Fn->>S: Find-or-create customer (search by email first)
+    Fn->>S: Create Checkout Session (metadata: supabase_user_id)
+    S-->>Fn: Session URL
+    Fn-->>U: Redirect to Stripe-hosted Checkout
+    U->>S: Completes payment on Stripe's page
+    S-->>Fn: Webhook: checkout.session.completed (signed)
+    Fn->>Fn: Verify signature via constructEvent; reject invalid with generic 400
+    Fn->>DB: Write subscription/entitlement (idempotent)
+    DB-->>Fn: OK
+    Fn-->>S: 200 (return 500 on failure so Stripe retries)

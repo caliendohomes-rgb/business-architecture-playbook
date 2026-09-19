@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant U as User (Browser)
+    participant N as Netlify (Static/SSR)
+    participant SA as Supabase Auth
+    participant DB as Supabase Postgres (RLS)
+
+    U->>N: Request page
+    N-->>U: HTML + anon key (public, safe to ship)
+    U->>SA: Sign in (email/OTP or OAuth)
+    SA-->>U: Session JWT (short-lived) + refresh token (httpOnly cookie)
+    U->>DB: Query with JWT (via supabase-js, anon key)
+    DB->>DB: RLS policy evaluates auth.uid() from JWT
+    DB-->>U: Rows the policy allows, nothing more

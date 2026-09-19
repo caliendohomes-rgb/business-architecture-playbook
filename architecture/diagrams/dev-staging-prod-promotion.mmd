@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph Local["Local dev"]
+        Code[Feature branch]
+    end
+    subgraph PR["Pull Request"]
+        Preview[Netlify Deploy Preview - Supabase staging - Stripe test mode]
+        CI[GitHub Actions: typecheck, build, secret scan]
+    end
+    subgraph Staging["staging branch"]
+        StagingDeploy[Netlify Branch Deploy - Supabase staging - Stripe test mode]
+    end
+    subgraph Prod["main branch"]
+        ProdDeploy[Netlify Production - Supabase prod - Stripe live mode]
+    end
+
+    Code -->|open PR| Preview
+    Code -->|open PR| CI
+    CI -->|pass| Preview
+    Preview -->|merge PR| StagingDeploy
+    StagingDeploy -->|manual verification| Prod
+    Prod --> ProdDeploy

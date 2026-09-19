@@ -1,0 +1,30 @@
+# Secrets — never commit real values
+.env
+.env.*
+!.env.example
+
+# Runtime data — a prior project committed a live SQLite DB + logs to a public repo. Don't.
+*.db
+*.sqlite
+*.sqlite3
+/logs/
+*.log
+
+# Dependencies / build output
+node_modules/
+dist/
+build/
+.output/
+
+# Netlify
+.netlify/
+
+# Supabase local dev
+.branches/
+.temp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json

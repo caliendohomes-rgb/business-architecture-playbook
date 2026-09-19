@@ -1,0 +1,35 @@
+# Reference netlify.toml — adjust [build] for your framework, keep the headers/redirects sections.
+# See docs/deployment.md and vendors/netlify.md for rationale.
+
+[build]
+  command = "npm run build"
+  publish = "dist"   # adjust: "build" for CRA, ".next" won't apply (use @netlify/plugin-nextjs instead), "dist" for Vite/Astro
+
+[build.environment]
+  NODE_VERSION = "20"   # pin this — an unpinned version caused a real prior production build break
+
+# --- Security headers: apply to every route ---
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    # Scope this to the vendors you actually call. This example covers the default stack.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.stripe.com https://plausible.io https://*.sentry.io; frame-src https://js.stripe.com https://checkout.stripe.com;"
+
+# --- API/function responses: never cached ---
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
+
+# --- Redirects: consolidate them here, not in a separate _redirects file ---
+# [[redirects]]
+#   from = "/old-path"
+#   to = "/new-path"
+#   status = 301

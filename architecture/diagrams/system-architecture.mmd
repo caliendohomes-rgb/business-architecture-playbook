@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph Client["Browser / Client"]
+        UI[Web App UI]
+    end
+
+    subgraph GH["GitHub"]
+        Repo[Repository]
+        Actions[GitHub Actions CI]
+        Secrets1[Actions Secrets]
+    end
+
+    subgraph Netlify["Netlify"]
+        Static[Static Assets / SSR]
+        Fns[Serverless Functions]
+        EnvVars[Site Env Vars per-context]
+    end
+
+    subgraph Supabase["Supabase"]
+        Auth[Auth]
+        DB[(Postgres + RLS)]
+        Storage[File Storage]
+    end
+
+    subgraph Stripe["Stripe"]
+        Checkout[Checkout / Billing Portal]
+        Webhooks[Webhook Events]
+    end
+
+    subgraph ThirdParty["Observability"]
+        Sentry[Sentry]
+        Plausible[Plausible]
+        Resend[Resend]
+    end
+
+    UI -->|git push| Repo
+    Repo -->|triggers| Actions
+    Actions -->|typecheck, build, secret scan| Repo
+    Repo -->|deploy hook| Static
+    Static --> Fns
+    UI <-->|anon key, RLS-scoped| Auth
+    UI <-->|anon key, RLS-scoped| DB
+    Fns -->|service role key, server-only| DB
+    Fns -->|service role key, server-only| Storage
+    UI -->|redirect to Checkout| Checkout
+    Checkout -->|webhook| Fns
+    Fns -->|verify signature, write| DB
+    Fns --> Resend
+    UI --> Plausible
+    Fns -.->|exceptions| Sentry
+    UI -.->|exceptions| Sentry
